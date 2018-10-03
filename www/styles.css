@@ -1,0 +1,55 @@
+
+a {
+  color: #95C11E;
+  text-decoration: none;
+  outline: 0;
+}
+
+a:focus, a:hover {
+  color: #95C11E;
+  text-decoration: underline;
+  outline: 0;
+}
+
+blockquote {
+  font-size: 18px;
+  background-color: #ecf0f1;
+  margin-left: 3%;
+  border-radius: 3px;
+  padding-left: 1%;
+  max-width: 800px;
+}
+
+.guide_intro {
+  font-size: 20px;
+  line-height: 30px
+  max-width: 800px;
+}
+
+.slogo {
+  position:absolute;
+  height:60px;
+  right:0px;
+  margin-right:10px;
+  margin-top:10px;
+}
+
+.main-container {
+  position: relative;
+}
+
+table.dataTable span.highlight {
+    background-color: #ABB2B9;
+}
+
+.help {
+  color: white;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  border: 1px solid lightgrey;
+  border-radius: 4px;
+  margin-left: 15px;
+  margin-right: 15px;
+  padding: 10px;
+  background: #ABB2B9;
+}

@@ -1,0 +1,113 @@
+---
+output: 
+  html_document:
+    number_sections: false
+    df_print: paged
+    theme: flatly
+    self_contained: true
+    css: 'styles.css'
+params:
+    label: NA
+    ome: NA
+    size: NA
+    num_samples: NA
+    num_pools: NA
+    samples_per_pool: NA
+    protocol: NA
+    table_wide: NA
+    table_long: NA
+    table_long_raw: NA
+    table_wide_colnames: NA
+    table_long_colnames: NA
+    appversion: NA
+    datadate: NA
+---
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
+library(knitr)
+library(rmarkdown)
+library(ggplot2)
+
+# set knit options
+opts_knit$set(progress=TRUE,verbose=TRUE)
+opts_chunk$set(dev="CairoPNG",results="hold",fig.show="hold",fig.align="left",echo=FALSE,warning=FALSE,message=FALSE)
+#options(knitr.table.format = "html") 
+```
+
+<img src="logo_scilifelab.svg" alt="logo" class="slogo">
+<h1 class="toc-ignore rtitle">Zage Report</h1>
+<h4 class="toc-ignore">`r format(Sys.Date(),format="%d-%b-%Y")`</h4>
+
+---
+
+|||  
+|--|--|  
+|Organism: |`r paste0("<b>",params$label,"</b>")`|  
+|Genome type: |`r paste0("<b>",params$ome,"</b>")`|  
+|Genome size (Gbp): |`r paste0("<b>",params$size,"</b>")`|  
+|Total number of samples: |`r paste0("<b>",params$num_samples,"</b>")`|  
+|Number of pools: |`r paste0("<b>",params$num_pools,"</b>")`|  
+|Samples per pool: |`r paste0("<b>",params$samples_per_pool,"</b>")`|  
+|Protocol: |`r paste0("<b>",params$protocol,"</b>")`|
+
+---
+
+```{r}
+    as.datatable(params$table_long,
+                 selection="none",
+                 class="stripe hover",
+                 style="bootstrap",
+                 options=list(
+                   dom="t",
+                   paging=FALSE,
+                   searchHighlight=TRUE,
+                   autoWidth=FALSE,
+                   columnDefs=list(list(className="dt-center",targets="_all"))),
+                 callback = JS(paste0("var tipslong=['','",paste(params$table_long_colnames$Description,collapse="','"),"'],
+                                       header=table.columns().header();
+                                       for (var i=0; i<tipslong.length; i++) {
+                                       $(header[i]).attr('title', tipslong[i]);
+                                       }")))
+```
+
+__Table 1:__ Table showing lanes required, coverage and cost based on number of samples pooled per lane. Hover over header for descriptions.
+
+```{r,fig.height=7,fig.width=7,dev="svg"}
+
+dfr <- params$table_long_raw %>%
+  select(samples_per_lane,reads_per_sample,lanes_req,coverage,cost_per_sample,cost_total) %>%
+  gather(key=metric,value=value,-samples_per_lane) %>%
+  mutate(metric=plyr::mapvalues(metric,from=c("cost_per_sample","cost_total",
+                                                "coverage","lanes_req","reads_per_sample"),
+                                  to=c("Cost Per Sample (SEK)","Cost Total (SEK)",
+                                       "Coverage (X)","Lanes Required","Reads Per Sample (Millions)")))
+
+ggplot(dfr,aes(x=as.factor(samples_per_lane),y=value,col=metric,group=metric))+
+  #geom_bar(stat="identity")+
+  geom_point()+
+  geom_line()+
+  scale_fill_manual(values=c("#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9",
+                             "#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"))+
+  labs(x="Samples Per Lane",y="")+
+  facet_wrap(~metric,nrow=5,scales="free_y")+
+  #guides(colour=guide_colourbar(title="Reads Per Sample (Millions)"))+
+  theme_bw(base_size=13)+
+  theme(panel.border=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.x=element_blank(),
+        legend.position="none",
+        legend.direction="horizontal",
+        legend.justification="right",
+        legend.title=element_text(vjust=0.5),
+        strip.background=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.ticks.x=element_line(colour="grey60"))
+```
+
+__Figure 1:__ Barplot showing samples-per-lane vs various metrics.
+
+---
+
+`r paste0("<small>Zage version: ",params$appversion,". Data updated: ",params$datadate,". Report printed on ",Sys.Date(),".</small></br>")`
+
+
