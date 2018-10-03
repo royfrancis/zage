@@ -1,10 +1,21 @@
 # Zage
 
-Zage is an R Shiny application to help you plan your sequencing experiment. Use this tool to compare sequencing depth, coverage and cost on various sequencers based on the number of samples and pools. Optionally, use the power analysis tool to estimate number of samples required to detect genes.
+Zage is an R Shiny application to help you plan your sequencing experiment. Use this tool to compare sequencing depth, coverage and cost on various sequencers based on the number of samples and pools. Optionally, use the power analysis tool to estimate number of samples required to detect genes for RNA-Seq.
 
 ![](preview.png)
 
-An online version of the app is available [here](http://rshiny.nbis.se/zage/).
+This app is available [online](http://rshiny.nbis.se/zage/).
+
+The app is designed mainly for use by Swedish researchers using SciLifeLab sequencing services. Therefore, the prices are in Swedish Kroner (SEK).
+
+If the app is run locally, the following R packages are required:
+
+```
+install.packages(c("Cairo","shiny","plyr","dplyr","formattable","tidyr",
+                 "RColorBrewer","shinythemes","highcharter","rmarkdown",
+                 "knitr","markdown","DT","ggplot2","shinyBS","RNASeqPower"),
+                 dep=TRUE)
+```
 
 <hr>
 
