@@ -44,9 +44,9 @@ shinyServer(function(input,output,session) {
   # get org, ome and ome size and returns data.frame
   
   fn_org <- reactive({
-    req(input$in_select_gsize)
-    req(input$in_label)
-    req(input$in_ome)
+    shiny::req(input$in_select_gsize)
+    shiny::req(input$in_label)
+    shiny::req(input$in_ome)
     
     v_label <- input$in_label
     v_ome <- tolower(input$in_ome)
@@ -63,18 +63,18 @@ shinyServer(function(input,output,session) {
   # computes samples-per-pool or num-of-pools; returns an integer
   
   fn_spp <- reactive({
-    req(input$in_num_samples)
-    req(input$in_criteria)
-    req(input$in_criteria_value)
+    shiny::req(input$in_num_samples)
+    shiny::req(input$in_criteria)
+    shiny::req(input$in_criteria_value)
     
     if(tolower(input$in_criteria)=="set samples per pool") {
       # check if num-of-samples and num-of-samples-per-pool match
-      if(input$in_criteria_value > input$in_num_samples) stop("Number of samples per pool must be less than the total number of samples.")
-      if((input$in_num_samples %% input$in_criteria_value) != 0) stop("Number of samples is not a multiple of number of samples per pool.")
+      validate(fn_validate_equal(input$in_criteria_value > input$in_num_samples,FALSE,"'Number of samples per pool' must be less than the 'total number of samples'."))
+      validate(fn_validate_equal(input$in_num_samples %% input$in_criteria_value,0,"'Number of samples' is not a multiple of 'number of samples per pool'."))
     } else {
       # check if num-of-samples and num-of-pools match
-      if(input$in_criteria_value > input$in_num_samples) stop("Number of pools must be less than the total number of samples.")
-      if((input$in_num_samples %% input$in_criteria_value) != 0) stop("Number of samples is not a multiple of number of pools.")
+      validate(fn_validate_equal(input$in_criteria_value > input$in_num_samples,FALSE,"'Number of pools' must be less than the 'total number of samples'."))
+      validate(fn_validate_equal(input$in_num_samples %% input$in_criteria_value,0,"'Number of samples' is not a multiple of 'number of samples per pool'."))
     }
     
     return(as.integer(ceiling(input$in_num_samples/input$in_criteria_value)))
@@ -84,14 +84,14 @@ shinyServer(function(input,output,session) {
   # gets ome size returns a numeric value
   
   fn_oz <- reactive({
-    req(input$in_select_gsize)
+    shiny::req(input$in_select_gsize)
     
     if(tolower(input$in_select_gsize)=="from list")
     {
-      req(fn_org())
+      shiny::req(fn_org())
       v_size <- fn_org()$size_gb
     }else{
-      req(input$in_size)
+      shiny::req(input$in_size)
       v_size <- input$in_size
     }
     
@@ -102,7 +102,7 @@ shinyServer(function(input,output,session) {
   # display selected genome size
   
   output$out_ome_size <- renderText({
-    req(fn_oz())
+    shiny::req(fn_oz())
     
     return(paste0("Selected genome size (Gbp): <b>",fn_oz(),"</b>"))
   })
@@ -190,7 +190,7 @@ shinyServer(function(input,output,session) {
   # formats wide kable
   
   fn_kable_wide <- reactive({
-    req(fn_ins())
+    shiny::req(fn_ins())
     
     # reorder columns and round values
     v_dfr_otw <- fn_ins() %>% 
@@ -250,7 +250,7 @@ shinyServer(function(input,output,session) {
   # exports wide kable
   
   output$out_table_wide_dt <- DT::renderDT({
-    req(fn_kable_wide())
+    shiny::req(fn_kable_wide())
     
     as.datatable(fn_kable_wide(),
                  selection="none",
@@ -278,7 +278,7 @@ shinyServer(function(input,output,session) {
   # conditional ui for button to generate report
   
   output$ui_report <- renderUI({
-    req(fn_kable_long())
+    shiny::req(fn_kable_long())
     
     downloadButton("btn_report","Download Report")
   })
@@ -287,8 +287,8 @@ shinyServer(function(input,output,session) {
   # reactive function to generate data for compare protocols plot
   
   fn_compare_data <- reactive({
-    req(fn_ins())
-    req(fn_oz())
+    shiny::req(fn_ins())
+    shiny::req(fn_oz())
     
     v_size <- fn_oz()
     dfr_ins <- fn_ins()
@@ -371,10 +371,9 @@ shinyServer(function(input,output,session) {
   # computes depth-cost table
   
   fn_long <- reactive({
-    req(fn_ins())
-    req(fn_oz())
-    req(input$in_protocol)
-    #req(input$in_multiple)
+    shiny::req(fn_ins())
+    shiny::req(fn_oz())
+    shiny::req(input$in_protocol)
     
     v_size <- fn_oz()
     v_in_protocol <- input$in_protocol
@@ -428,7 +427,7 @@ shinyServer(function(input,output,session) {
   # formats depth-cost kable
   
   fn_kable_long <- reactive({
-    req(fn_long())
+    shiny::req(fn_long())
     
     dfr_long <- fn_long() %>%
       mutate(reads_per_sample=round(reads_per_sample,0),
@@ -451,7 +450,7 @@ shinyServer(function(input,output,session) {
   # exports depth-cost kable
   
   output$out_table_long<- DT::renderDT({
-    req(fn_kable_long())
+    shiny::req(fn_kable_long())
     
     as.datatable(fn_kable_long(),
                  selection="none",
@@ -474,7 +473,7 @@ shinyServer(function(input,output,session) {
   # displays interactive plot
   
   output$out_plot <- renderHighchart({
-    req(fn_long())
+    shiny::req(fn_long())
     
     dfr_long <- fn_long() %>%
       mutate(reads_per_sample=round(reads_per_sample,0),
@@ -632,9 +631,9 @@ shinyServer(function(input,output,session) {
       alpha <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_alpha),",")))
       power <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_power),",")))
       
-      if(any(cv>1|cv<0)) stop("Coefficient of variation must be between 0-1.")
-      if(any(alpha>1|alpha<0)) stop("Alpha must be between 0-1.")
-      if(any(power>1|power<0)) stop("Power must be between 0-1.")
+      validate(fn_validate_equal(any(cv>1|cv<0),FALSE,"Coefficient of variation must be between 0-1."))
+      validate(fn_validate_equal(any(alpha>1|alpha<0),FALSE,"Alpha must be between 0-1."))
+      validate(fn_validate_equal(any(power>1|power<0),FALSE,"Power must be between 0-1."))
       
       RNASeqPower::rnapower(depth=depth,cv=cv,effect=effect,alpha=alpha,power=power)
     }else if(input$in_pa_est=="effect") {
@@ -643,9 +642,9 @@ shinyServer(function(input,output,session) {
       alpha <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_alpha),",")))
       power <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_power),",")))
       
-      if(any(cv>1|cv<0)) stop("Coefficient of variation must be between 0-1.")
-      if(any(alpha>1|alpha<0)) stop("Alpha must be between 0-1.")
-      if(any(power>1|power<0)) stop("Power must be between 0-1.")
+      validate(fn_validate_equal(any(cv>1|cv<0),FALSE,"Coefficient of variation must be between 0-1."))
+      validate(fn_validate_equal(any(alpha>1|alpha<0),FALSE,"Alpha must be between 0-1."))
+      validate(fn_validate_equal(any(power>1|power<0),FALSE,"Power must be between 0-1."))
       
       RNASeqPower::rnapower(depth=depth,n=n,cv=cv,alpha=alpha,power=power)
     }else if(input$in_pa_est=="alpha") {
@@ -654,8 +653,8 @@ shinyServer(function(input,output,session) {
       effect <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_effect),",")))
       power <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_power),",")))
       
-      if(any(cv>1|cv<0)) stop("Coefficient of variation must be between 0-1.")
-      if(any(power>1|power<0)) stop("Power must be between 0-1.")
+      validate(fn_validate_equal(any(cv>1|cv<0),FALSE,"Coefficient of variation must be between 0-1."))
+      validate(fn_validate_equal(any(power>1|power<0),FALSE,"Power must be between 0-1."))
       
       RNASeqPower::rnapower(depth=depth,n=n,cv=cv,effect=effect,power=power)
     }else if(input$in_pa_est=="cv") {
@@ -663,9 +662,9 @@ shinyServer(function(input,output,session) {
       effect <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_effect),",")))
       alpha <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_alpha),",")))
       power <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_power),",")))
-      
-      if(any(alpha>1|alpha<0)) stop("Alpha must be between 0-1.")
-      if(any(power>1|power<0)) stop("Power must be between 0-1.")
+
+      validate(fn_validate_equal(any(alpha>1|alpha<0),FALSE,"Alpha must be between 0-1."))
+      validate(fn_validate_equal(any(power>1|power<0),FALSE,"Power must be between 0-1."))
       
       RNASeqPower::rnapower(depth=depth,n=n,effect=effect,alpha=alpha,power=power)
     } else if(input$in_pa_est=="power") {
@@ -674,8 +673,8 @@ shinyServer(function(input,output,session) {
       effect <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_effect),",")))
       alpha <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_alpha),",")))
       
-      if(any(cv>1|cv<0)) stop("Coefficient of variation must be between 0-1.")
-      if(any(alpha>1|alpha<0)) stop("Alpha must be between 0-1.")
+      validate(fn_validate_equal(any(cv>1|cv<0),FALSE,"Coefficient of variation must be between 0-1."))
+      validate(fn_validate_equal(any(alpha>1|alpha<0),FALSE,"Alpha must be between 0-1."))
       
       RNASeqPower::rnapower(depth=depth,n=n,cv=cv,effect=effect,alpha=alpha)
     }
