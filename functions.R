@@ -45,7 +45,7 @@ choices_protocol <- sort(unique(dfr_ins$protocol))
 # saveRDS(dfr_org,"dfr_org.Rds")
 dfr_org <- readRDS("dfr_org.Rds")
 
-fn_version <- function(){list(appversion="v1.0.0",appdate="22-Sep-2018",datadate=dfr_ins$last_updated[1])}
+fn_version <- function(){list(appversion="v1.0.1",appdate="03-Oct-2018",datadate=dfr_ins$last_updated[1])}
 fnv <- fn_version()
 
 dfr_ins$last_updated <- NULL
