@@ -55,3 +55,11 @@ choices_pa <- list(`Number of samples in each group`=c("n"="n"),
                    `Relative expression effect (like fold-change)`=c("effect"="effect"),
                    `False positive rate (like p-value)`=c("alpha"="alpha"),
                    `Fraction of true positives`=c("power"="power"))
+
+# Validate equality between two input values
+# Prints message if input1 is not equal to input2
+#
+fn_validate_equal <- function(input1,input2,message)
+{
+  if(all(input1 != input2)) print(message)
+}
