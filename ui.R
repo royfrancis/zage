@@ -100,7 +100,7 @@ shinyUI(
                                                                  <div class="col-sm-11">
                                                                  <div class="collapse" id="ac4">
                                                                  <div class="card card-body" style="border:1px solid lightgrey;border-radius:4px;padding:10px;color:grey;">
-                                                                 This sections provides detailed insights for a selected protocol for all possible poolings (samples per lane). Genome size and number of samples are used from the left panel.
+                                                                 This section provides detailed insights for a selected protocol for all possible poolings (samples per lane). Genome size and number of samples are used from the left panel.
                                                                  </div>
                                                                  </div>
                                                                  </div>
