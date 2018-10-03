@@ -6,7 +6,7 @@
 ---
 
 <div class="guide_intro">
-Zage helps you plan your NGS sequencing experiment. Use this tool to compare sequencing depth, coverage and cost on various sequencers based on the number of samples and pools. Optionally, use the power analysis tool to estimate number of samples required to detect genes.
+Zage helps you plan your NGS sequencing experiment. Use this tool to compare sequencing depth, coverage and cost on various sequencers based on the number of samples and pools. Optionally, use the power analysis tool (for RNA-Seq) to estimate number of samples required to detect genes.
 </div>
 
 <a name="usage"><h3>1. Usage</h3></a>  
