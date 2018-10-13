@@ -40,12 +40,14 @@ dfr_ins <- readRDS("dfr_ins.Rds")
 choices_protocol <- sort(unique(dfr_ins$protocol))
 
 # read and prepare organism info
-# dfr_org <- read.delim("org.txt",header=T,stringsAsFactors=F)
-# dfr_org$label <- paste0(dfr_org$name," (",dfr_org$sci_name,")")
-# saveRDS(dfr_org,"dfr_org.Rds")
+#s <- read.delim("sizes.txt",header=F,stringsAsFactors=F)
+#colnames(s) <- c("name","sci_name","dna","cdna","cat1","cat2")
+#s$label <- paste0(s$name," (",s$sci_name,")")
+#saveRDS(s,"dfr_org.Rds")
 dfr_org <- readRDS("dfr_org.Rds")
+choices_org <- split(dfr_org$label,factor(dfr_org$cat1))
 
-fn_version <- function(){list(appversion="v1.0.1",appdate="03-Oct-2018",datadate=dfr_ins$last_updated[1])}
+fn_version <- function(){list(appversion="v1.0.2",appdate="13-Oct-2018",datadate=dfr_ins$last_updated[1])}
 fnv <- fn_version()
 
 dfr_ins$last_updated <- NULL

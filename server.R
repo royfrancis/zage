@@ -14,7 +14,7 @@ shinyServer(function(input,output,session) {
     if(tolower(input$in_select_gsize) == "from list")
     {
       div(
-        selectInput("in_label","Organism",choices=dfr_org$label,selected=1,selectize=T,multiple=F)
+        selectInput("in_label","Organism",choices=choices_org,selected="Human (Homo sapiens)",selectize=T,multiple=F)
       )
     }else{
       div(
@@ -53,8 +53,14 @@ shinyServer(function(input,output,session) {
     
     if(input$in_select_gsize=="From List")
     {
-      temp <- dfr_org %>% filter(.,label==get("v_label"),ome==get("v_ome"))
-      if(nrow(temp) != 1) stop("Organism table not filtered correctly.")
+      temp <- dfr_org %>% filter(.,label==get("v_label"))
+      validate(fn_validate_equal(nrow(temp) < 2,TRUE,"Organism table not filtered correctly."))
+      if(v_ome == "genome") {
+        temp$size_gb <- temp$dna/(10^9)
+      }else{
+        temp$size_gb <- temp$cdna/(10^9)
+      }
+      
       return(temp)
     }
   })
@@ -157,12 +163,12 @@ shinyServer(function(input,output,session) {
       return()
   })
   
-  # FN: fn_kable_wide_colnames -------------------------------------------------
+  # FN: fn_table_wide_colnames -------------------------------------------------
   # column names for the wide table
   # this is used in many places and editing it here in one place
   # makes it easy to update
   
-  fn_kable_wide_colnames <- function(){
+  fn_table_wide_colnames <- function(){
     
     dfr <- data.frame(Header=c("Instrument","Min Unit","Read Type",
                                "Read Length",
@@ -186,10 +192,10 @@ shinyServer(function(input,output,session) {
     return(dfr)
   }
   
-  # RFN: fn_kable_wide -----------------------------------------------------------
-  # formats wide kable
+  # RFN: fn_table_wide -----------------------------------------------------------
+  # formats wide table and creates formattable
   
-  fn_kable_wide <- reactive({
+  fn_table_wide <- reactive({
     shiny::req(fn_ins())
     
     # reorder columns and round values
@@ -215,7 +221,7 @@ shinyServer(function(input,output,session) {
              cost_total=ceiling(cost_total))
     
     # rename headers
-    colnames(v_dfr_otw) <- fn_kable_wide_colnames()$Header
+    colnames(v_dfr_otw) <- fn_table_wide_colnames()$Header
     
     # color formatting
     col_ins <- RColorBrewer::brewer.pal(8,"Paired")
@@ -246,39 +252,60 @@ shinyServer(function(input,output,session) {
     return(v_dfr_otw)
   })
   
-  # OUT: out_table_wide -----------------------------------------------------
-  # exports wide kable
+  # RFN: fn_dt_wide -----------------------------------------------------------
+  # converts formattable to dt and adds number formatting
   
-  output$out_table_wide_dt <- DT::renderDT({
-    shiny::req(fn_kable_wide())
-    
-    as.datatable(fn_kable_wide(),
-                 selection="none",
-                 class="stripe hover",
-                 style="bootstrap",
-                 options=list(
-                   dom="ft",
-                   paging=FALSE,
-                   searchHighlight=TRUE,
-                   autoWidth=FALSE,
-                   columnDefs=list(list(className="dt-center",targets=c(5:10)),
-                                   list(className="dt-left",targets=c(1:4)),
-                                   list(width="170px",targets=1))),
-                 callback = JS(paste0("var tips=['','",paste(fn_kable_wide_colnames()$Description,collapse="','"),"'],
-                                      header=table.columns().header();
-                                      for (var i=0; i<tips.length; i++) {
-                                      $(header[i]).attr('title', tips[i]);
-                                      };"))
+  fn_dt_wide <- reactive({
+    shiny::req(fn_table_wide())
+  
+    tmp <- formattable::as.datatable(fn_table_wide(),
+      selection="none",
+      class="stripe hover",
+      style="bootstrap",
+      options=list(
+        dom="ft",
+        paging=FALSE,
+        searchHighlight=TRUE,
+        autoWidth=FALSE,
+        columnDefs=list(list(className="dt-right",targets=c(8:10)),
+                        list(className="dt-center",targets=c(5:7)),
+                        list(className="dt-left",targets=c(1:4)),
+                        list(width="170px",targets=1))),
+      callback = JS(paste0("var tips=['','",paste(fn_table_wide_colnames()$Description,collapse="','"),"'],
+                           header=table.columns().header();
+                           for (var i=0; i<tips.length; i++) {
+                           $(header[i]).attr('title', tips[i]);
+                           };"))
     )
+    
+    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (SEK)`,">[0-9]+<"),">|<",""))
+    tmp$x$data$`Total Cost (SEK)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (SEK)`,
+                                                              ">[0-9]+<",paste0(">",prettyNum(tmpnum,
+                                                                                              big.mark="<span style='padding:3px;'>",
+                                                                                              big.interval=3,scientific=F),"<"))
+    
+    tmp$x$data$`Cost Per Sample (SEK)` <- prettyNum(tmp$x$data$`Cost Per Sample (SEK)`,
+                                                    big.mark="<span style='padding:3px;'>",
+                                                    big.interval=3,scientific=F)
+    
+    tmp$x$data$`Cost Per Lane (SEK)` <- prettyNum(tmp$x$data$`Cost Per Lane (SEK)`,
+                                                  big.mark="<span style='padding:3px;'>",
+                                                  big.interval=3,scientific=F)
+    return(tmp)
   })
   
+  # OUT: out_table_wide -----------------------------------------------------
+  # exports wide table
   
-  
+  output$out_table_wide_dt <- DT::renderDT(
+    fn_dt_wide()
+  )
+
   # UI: ui_report ------------------------------------------------------------
   # conditional ui for button to generate report
   
   output$ui_report <- renderUI({
-    shiny::req(fn_kable_long())
+    shiny::req(fn_table_long())
     
     downloadButton("btn_report","Download Report")
   })
@@ -402,12 +429,12 @@ shinyServer(function(input,output,session) {
     return(dfr_long)
   })
   
-  # FN: fn_kable_long_colnames -------------------------------------------------
+  # FN: fn_table_long_colnames -------------------------------------------------
   # column names for the long table
   # this is used in many places and editing it here in one place
   # makes it easy to update
   
-  fn_kable_long_colnames <- function(){
+  fn_table_long_colnames <- function(){
     
     dfr <- data.frame(Header=c("Samples Per Lane","Reads Per Sample (Millions)",
                                "Lanes Required","Lane Usage","Coverage",
@@ -423,10 +450,10 @@ shinyServer(function(input,output,session) {
     return(dfr)
   }
   
-  # RFN: fn_kable_long ----------------------------------------------------------
-  # formats depth-cost kable
+  # RFN: fn_table_long ----------------------------------------------------------
+  # formats depth-cost table
   
-  fn_kable_long <- reactive({
+  fn_table_long <- reactive({
     shiny::req(fn_long())
     
     dfr_long <- fn_long() %>%
@@ -436,7 +463,7 @@ shinyServer(function(input,output,session) {
              cost_per_sample=ceiling(cost_per_sample),
              cost_total=ceiling(cost_total))
     
-    colnames(dfr_long) <- fn_kable_long_colnames()$Header
+    colnames(dfr_long) <- fn_table_long_colnames()$Header
     
     dfr_long <- formattable(dfr_long,list(
       "Reads Per Sample (Millions)"=color_tile("#dfecbb","#95c11e"),
@@ -446,27 +473,45 @@ shinyServer(function(input,output,session) {
     return(dfr_long)
   })
   
+  # RFN: fn_dt_long -----------------------------------------------------------
+  # converts formattable to dt and adds number formatting
+  
+  fn_dt_long <- reactive({
+    shiny::req(fn_table_long())
+    
+    tmp <- formattable::as.datatable(fn_table_long(),
+                        selection="none",
+                        class="stripe hover",
+                        style="bootstrap",
+                        options=list(
+                          dom="ft",
+                          paging=FALSE,
+                          searchHighlight=TRUE,
+                          autoWidth=FALSE,
+                          columnDefs=list(list(className="dt-center",targets=c(1:5)),
+                                          list(className="dt-right",targets=c(6:7)))),
+                        callback = JS(paste0("var tipslong=['','",paste(fn_table_long_colnames()$Description,collapse="','"),"'],
+                                  header=table.columns().header();
+                                  for (var i=0; i<tipslong.length; i++) {
+                                  $(header[i]).attr('title', tipslong[i]);
+                                  }")))
+    
+    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (SEK)`,">[0-9]+<"),">|<",""))
+    tmp$x$data$`Total Cost (SEK)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (SEK)`,
+                                                              ">[0-9]+<",paste0(">",prettyNum(tmpnum,
+                                                                                              big.mark="<span style='padding:3px;'>",
+                                                                                              big.interval=3,scientific=F),"<"))
+    tmp$x$data$`Cost Per Sample (SEK)` <- prettyNum(tmp$x$data$`Cost Per Sample (SEK)`,
+                                                    big.mark="<span style='padding:3px;'>",
+                                                    big.interval=3,scientific=F)
+    return(tmp)
+  })
+  
   # OUT: out_table_long -----------------------------------------------------
-  # exports depth-cost kable
+  # exports long table
   
   output$out_table_long<- DT::renderDT({
-    shiny::req(fn_kable_long())
-    
-    as.datatable(fn_kable_long(),
-                 selection="none",
-                 class="stripe hover",
-                 style="bootstrap",
-                 options=list(
-                   dom="ft",
-                   paging=FALSE,
-                   searchHighlight=TRUE,
-                   autoWidth=FALSE,
-                   columnDefs=list(list(className="dt-center",targets="_all"))),
-                 callback = JS(paste0("var tipslong=['','",paste(fn_kable_long_colnames()$Description,collapse="','"),"'],
-                                      header=table.columns().header();
-                                      for (var i=0; i<tipslong.length; i++) {
-                                      $(header[i]).attr('title', tipslong[i]);
-                                      }")))
+    fn_dt_long()
   })
   
   # OUT: out_plot -----------------------------------------------------------
@@ -490,8 +535,6 @@ shinyServer(function(input,output,session) {
                          '<br>Total Cost: ',cost_total)) %>%
       select(samples_per_lane,reads_per_sample,lanes_req,coverage,cost_per_sample,cost_total,popup) %>%
       gather(key=metric,value=value,-samples_per_lane,-popup)
-    
-    
     
     # plot_ly(dfr_long,x=~samples_per_lane,y=~cost_total,height=500,
     #         hoverinfo='text',text=~paste('</br>Samples Per Lane: ',samples_per_lane,
@@ -771,11 +814,11 @@ shinyServer(function(input,output,session) {
         num_pools=num_of_pools,
         samples_per_pool=samples_per_pool,
         protocol=input$in_protocol,
-        table_wide=fn_kable_wide(),
-        table_long=fn_kable_long(),
+        table_wide=fn_table_wide(),
+        table_long=fn_table_long(),
         table_long_raw=fn_long(),
-        table_wide_colnames=fn_kable_wide_colnames(),
-        table_long_colnames=fn_kable_long_colnames(),
+        table_wide_colnames=fn_table_wide_colnames(),
+        table_long_colnames=fn_table_long_colnames(),
         appversion=fn_version()$appversion,
         datadate=fnv$datadate)
       
