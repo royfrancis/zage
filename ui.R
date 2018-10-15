@@ -8,10 +8,11 @@ shinyUI(
   fluidPage(theme=shinytheme("flatly"),
             includeCSS("www/styles.css"),
             tags$head(includeScript("google-analytics.js")),
-            tags$title("Zage"),
+            tags$head(tags$link(rel="favicon", href="/www/favicon.ico")),
+            tags$title("Zage | Plan your sequencing"),
             fluidRow(style="height:80px",
                      fluidRow(style="padding-left:4%;min-height:80px;",
-                              HTML("<div><p><h2><b>Zage</b> | Plan your Sequencing</h2></p></div>"),
+                              HTML("<div><p><h2><b>Zage</b> | Plan your sequencing</h2></p></div>"),
                               HTML("<div><img src='logo_scilifelab.svg' style='position:absolute;right:0;top:1%;padding-right:3%;height:55px;' class='img-responsive'</div>")
                      )
             ),
