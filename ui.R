@@ -24,7 +24,7 @@ shinyUI(
                                      selectInput("in_select_gsize","Genome size selection",choices=c("From List","Custom"),selected=1,selectize=T,multiple=F),
                                      uiOutput("ui_gsize"),
                                      selectInput("in_ome","Genome type",choices=c("Genome","Transcriptome"),selected="Genome",selectize=T,multiple=F),
-                                     numericInput("in_num_samples","Total number of samples",value=12,min=1,step=1),
+                                     numericInput("in_num_samples","Total number of samples",value=24,min=1,step=1),
                                      htmlOutput("out_ome_size"),
                                      tags$br(),
                                      uiOutput("ui_report"),
@@ -39,7 +39,8 @@ shinyUI(
                                      tabsetPanel(id="tabset_main",
                                                  tabPanel("Overview",
                                                           fluidRow(
-                                                            HTML('<div class="row" style="margin: 15px;">
+                                                                   column(12,
+                                                                          fluidRow(                                                            HTML('<div class="row" style="margin: 15px;">
     <div class="col-auto">
       <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac2" role="button" aria-expanded="false" aria-controls="ac2">
       <i class="fa fa-info-circle fa-lg"></i>
@@ -48,7 +49,7 @@ shinyUI(
 <div class="col-sm-11">
       <div class="collapse" id="ac2">
       <div class="card card-body" style="border:1px solid lightgrey;border-radius:4px;padding:10px;color:grey;">
-      This section gives an overview over all protocols for a fixed pooling (samples per lane). Genome size and number of samples are used from the left panel.
+      This section gives an overview over all protocols for a fixed pooling (samples per lane). Genome size and number of samples are used from the left panel. Note that each pool is assumed to go on one lane; therefore 1 pool = 1 lane.
       </div>
       </div>
       </div>
@@ -65,11 +66,17 @@ shinyUI(
                                                             )
                                                           ),
                                                           tags$hr(),
+                                                          fluidRow(
                                                           DTOutput("out_table_wide_dt"),
+                                                          htmlOutput("out_mul"),
                                                           tags$br()
+                                                          )
+                                                                   )
+                                                          )
                                                  ),
                                                  tabPanel("Compare Protocols",
                                                           fluidRow(
+                                                            column(12,
                                                             HTML('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac3" role="button" aria-expanded="false" aria-controls="ac3">
@@ -84,14 +91,14 @@ shinyUI(
                                                                  </div>
                                                                  </div>
                                                                  </div>'),
-                                                            column(12,
-                                                                   tags$br(),
-                                                                   htmlOutput("out_plot_container")
+                                                              tags$br(),
+                                                              htmlOutput("out_plot_container")
                                                             )
                                                           )
                                                  ),
                                                  tabPanel("Selected Protocol",
                                                           fluidRow(
+                                                            column(12,
                                                             HTML('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac4" role="button" aria-expanded="false" aria-controls="ac4">
@@ -106,10 +113,11 @@ shinyUI(
                                                                  </div>
                                                                  </div>
                                                                  </div>'),
-                                                            column(12,
+                                                            
                                                                    fluidRow(
                                                                      column(4,
-                                                                            selectInput("in_protocol","Protocol",choices=choices_protocol,selected=1,selectize=T,multiple=F)
+                                                                            #selectInput("in_protocol","Protocol",choices=choices_protocol,selected=1,selectize=T,multiple=F)
+                                                                            pickerInput("in_protocol","Protocol",choices=choices_protocol,choicesOpt=list(content=choices_protocol_opts),options=list(style="cpdd"),selected=1,multiple=F)
                                                                      ),
                                                                      column(8,
                                                                             tags$br(),
@@ -127,6 +135,7 @@ shinyUI(
                                                  ),
                                                  tabPanel("Power Analysis",
                                                           fluidRow(
+                                                                   column(12,
                                                             HTML('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac5" role="button" aria-expanded="false" aria-controls="ac5">
@@ -136,11 +145,12 @@ shinyUI(
                                                                  <div class="col-sm-11">
                                                                  <div class="collapse" id="ac5">
                                                                  <div class="card card-body" style="border:1px solid lightgrey;border-radius:4px;padding:10px;color:grey;">
-                                                                 Power Analysis for RNA-Seq. This section is stand-alone (does not use values from other sections).  This section assumes comparison of two groups with equal number of samples. Multiple values can be entered using comma separation. Sequencing depth is input only and cannot be estimated.
+                                                                 Power Analysis for RNA-Seq. This section is stand-alone (does not use values from other sections).  This section assumes comparison of two groups with equal number of samples. Multiple values can be entered using comma separation. Sequencing depth is input only and cannot be estimated. See guide for more info.
                                                                  </div>
                                                                  </div>
                                                                  </div>
                                                                  </div>'),
+                                                            fluidRow(
                                                             column(4,
                                                               selectInput("in_pa_est","Variable to estimate",choices=choices_pa,selected=1,selectize=TRUE,multiple=FALSE),
                                                               uiOutput("ui_pa")
@@ -151,16 +161,39 @@ shinyUI(
                                                             verbatimTextOutput("out_pa")
                                                             )
                                                             )
+                                                            )
+                                                          )
                                                           )
                                                  ),
                                                  tabPanel("Guide",
                                                           fluidRow(
+                                                            column(12,
+                                                            div(style="max-width:800px;",
+                                                                tags$br(),
                                                             includeMarkdown("guide.md")
+                                                            )
+                                                            )
                                                           )
                                                  ),
                                                  tabPanel("Version",
                                                           fluidRow(
+                                                            column(12,
+                                                            div(style="max-width:700px;",
+                                                                tags$br(),
                                                             includeMarkdown("versions.md")
+                                                            )
+                                                            )
+                                                          )
+                                                 ),
+                                                 tabPanel("Contact",
+                                                          fluidRow(
+                                                            column(12,
+                                                                   tags$br(),
+                                                            h3("Contact"),
+                                                            div(style="max-width:700px;",
+                                                            HTML("<h4 style='line-height:30px;'>For queries related to sequencing,  please contact <a href='https://www.scilifelab.se/platforms/ngi/'>National Genomics infrastructure (NGI)</a>. If you have any comments, suggestions or would like to report an issue with the web application, kindly register a report <a href='https://github.com/royfrancis/zage/issues'>here</a>.</h4>")
+                                                            )
+                                                            )
                                                           )
                                                  )
                                      )

@@ -17,6 +17,13 @@ install.packages(c("Cairo","shiny","plyr","dplyr","formattable","tidyr",
                  dep=TRUE)
 ```
 
+Then from within R, while standing in the app directory, run:
+
+```
+library(shiny)
+runApp()
+```
+
 <hr>
 
 <b>2018</b> | Roy Francis | [SciLifeLab](https://www.scilifelab.se/) | [NBIS](https://nbis.se/)

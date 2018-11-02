@@ -33,7 +33,7 @@ shinyServer(function(input,output,session) {
     
     if(tolower(input$in_criteria)=="set number of pools")
     {
-      numericInput("in_criteria_value","Number of pools",value=1,min=1,step=1)
+      numericInput("in_criteria_value","Number of pools (Lanes)",value=8,min=1,step=1)
     }else{
       numericInput("in_criteria_value","Samples per pool",value=input$in_num_samples,min=1,step=1)
     }
@@ -124,14 +124,15 @@ shinyServer(function(input,output,session) {
     {
       return(paste0("Number of samples per pool (samples per lane): ",fn_spp()))
     }else{
-      return(paste0("Number of pools: ",fn_spp()))
+      return(paste0("Number of pools (Lanes): ",fn_spp()))
     }
   })
   
-  # RFN: fn_ins -----------------------------------------------------------
-  # compute overview table and returns data.frame
+  # RFN: fn_ins_mul -----------------------------------------------------------
+  # compute overview table with min unit limits
   
-  fn_ins <- reactive({
+  
+  fn_ins_mul <- reactive({
     shiny::req(input$in_criteria)
     shiny::req(fn_spp())
     shiny::req(fn_oz())
@@ -150,7 +151,7 @@ shinyServer(function(input,output,session) {
     # read type multiplier
     v_rtm <- ifelse(dfr_ins$read_type=="se",1,2)
     
-    dfr_ins %>%
+    dfr_ins <- dfr_ins %>%
       mutate(bases_per_lane=(reads_per_lane*read_length*v_rtm*10^6),
              bases_per_sample=bases_per_lane/samples_per_pool,
              reads_per_sample_1x=(v_size*10^9)/(read_length*v_rtm),
@@ -159,8 +160,53 @@ shinyServer(function(input,output,session) {
              coverage_rd=(reads_per_sample*10^6)/reads_per_sample_1x,
              coverage_lw=(reads_per_sample*v_rtm*read_length*10^6)/(v_size*10^9),
              cost_per_sample=cost_per_lane/samples_per_pool,
-             cost_total=cost_per_sample*input$in_num_samples) %>%
-      return()
+             cost_total=cost_per_sample*input$in_num_samples)
+    
+    # add min unit limit
+    # Allowed protocols are T and disabled protocols are F
+    dfr_ins$min_unit_limit <- ifelse(dfr_ins$min_unit=="Lane",T,ifelse((dfr_ins$min_unit=="Flow cell") & (num_of_pools >= dfr_ins$lanes) & (num_of_pools %% dfr_ins$lanes == 0),T,F))
+    
+    return(dfr_ins)
+  })
+  
+  # OBS ---------------------------------------------------------------------
+  # Updates dropdown widget to reflect min unit limit
+  
+  observeEvent(fn_ins_mul(),{
+    choices_protocol_opts1 <- ifelse(fn_ins_mul()$min_unit_limit,choices_protocol_opts,gsub("background: #[A-Z0-9]+","background: #DCDCDC",choices_protocol_opts))
+    updatePickerInput(session,"in_protocol","Protocol",choices=choices_protocol,
+                      selected=fn_ins_mul()[fn_ins_mul()$min_unit_limit==F]$protocol[1],
+                      choicesOpt=list(disabled=!fn_ins_mul()$min_unit_limit,
+                                      content=choices_protocol_opts1))
+  })
+  
+  # RFN: fn_ins -----------------------------------------------------------
+  # filters out mul
+  
+  fn_ins <- reactive({
+    shiny::req(fn_ins_mul())
+    
+    # get dfr_ins
+    dfr_ins <- fn_ins_mul() %>% dplyr::filter(min_unit_limit==TRUE)
+    dfr_ins$min_unit_limit <- NULL
+
+    return(dfr_ins)
+  })
+  
+  # OUT: out_mul -----------------------------------------------
+  # displays number of protocols removed due to min unit limit
+  
+  output$out_mul <- renderText({
+    shiny::req(fn_ins_mul())
+    
+    n <- sum(!fn_ins_mul()$min_unit_limit)
+    
+    if(n>0)
+    {
+      return(paste0("<small><b>Note:</b> ",n," protocol",ifelse(n>1,"s","")," not displayed due to minimum unit limit. See guide.</small>"))
+    }else{
+      return("")
+    }
   })
   
   # FN: fn_table_wide_colnames -------------------------------------------------
@@ -170,9 +216,8 @@ shinyServer(function(input,output,session) {
   
   fn_table_wide_colnames <- function(){
     
-    dfr <- data.frame(Header=c("Instrument","Min Unit","Read Type",
+    dfr <- data.frame(Header=c("Instrument","Min Unit","Lanes","Read Type",
                                "Read Length",
-                               "Reads Per Lane (Millions)",
                                "Reads Per Sample (Millions)",
                                "Coverage (Lander-Waterman) X",
                                "Cost Per Lane (SEK)",
@@ -180,9 +225,9 @@ shinyServer(function(input,output,session) {
                                "Total Cost (SEK)"),
                       Description=c("Sequencing instrument",
                                     "Minimum units required for a sequencing run",
+                                    "Number of lanes",
                                     "Read type (single-end/paired-end)",
                                     "Read length (base pairs)",
-                                    "Number of reads per lane (millions)",
                                     "Number of reads per sample (millions)",
                                     "Lander-Waterman coverage (X)",
                                     "Cost per lane (SEK)",
@@ -196,24 +241,19 @@ shinyServer(function(input,output,session) {
   # formats wide table and creates formattable
   
   fn_table_wide <- reactive({
-    shiny::req(fn_ins())
+    shiny::req(fn_ins_mul())
     
     # reorder columns and round values
-    v_dfr_otw <- fn_ins() %>% 
-      select(ins,min_unit,read_type,read_length,
-             reads_per_lane,
-             -bases_per_sample,
-             -bases_per_lane,
-             -reads_per_sample_1x,
+    v_dfr_otw <- fn_ins_mul() %>% 
+      select(ins,min_unit,lanes,read_type,read_length,
+             -reads_per_lane,
              reads_per_sample,
-             -coverage_ba,
-             -coverage_rd,
              coverage_lw,
              cost_per_lane,
              cost_per_sample,
-             cost_total) %>%
+             cost_total,
+             min_unit_limit) %>%
       mutate(read_type=toupper(read_type),
-             reads_per_lane=round(reads_per_lane,0),
              reads_per_sample=round(reads_per_sample,0),
              coverage_lw=round(coverage_lw,0),
              cost_per_sample=ceiling(cost_per_sample),
@@ -221,25 +261,27 @@ shinyServer(function(input,output,session) {
              cost_total=ceiling(cost_total))
     
     # rename headers
-    colnames(v_dfr_otw) <- fn_table_wide_colnames()$Header
+    colnames(v_dfr_otw) <- c(fn_table_wide_colnames()$Header,"min_unit_limit")
     
-    # color formatting
-    col_ins <- RColorBrewer::brewer.pal(8,"Paired")
-    col_read_type <- RColorBrewer::brewer.pal(8,"Set2")
-    col_read_length <- RColorBrewer::brewer.pal(8,"Dark2")
+    v_dfr_otw <- v_dfr_otw[v_dfr_otw$min_unit_limit==TRUE,]
+    v_dfr_otw$min_unit_limit <- NULL
+    
+    col_ins2 <- col_ins[names(col_ins) %in% sort(unique(v_dfr_otw$Instrument))]
+    col_read_type2 <- col_read_type[names(col_read_type) %in% sort(unique(v_dfr_otw$`Read Type`))]
+    col_read_length2 <- col_read_length[names(col_read_length) %in% sort(unique(v_dfr_otw$`Read Length`))]
     
     color_bar_ins <- formatter("span",style=function(x) style(
       color="white",font.weight="bold",
       border.radius="4px",padding.left="3px",padding.right="3px",
-      background=col_ins[factor(v_dfr_otw$Instrument)]))
+      background=col_ins2[factor(v_dfr_otw$Instrument)]))
     color_bar_read_type <- formatter("span",style=function(x) style(
       color="white",font.weight="bold",
       border.radius="4px",padding.left="3px",padding.right="3px",
-      background=col_read_type[factor(v_dfr_otw$`Read Type`)]))
+      background=col_read_type2[factor(v_dfr_otw$`Read Type`)]))
     color_bar_read_length <- formatter("span",style=function(x) style(
       color="white",font.weight="bold",
       border.radius="4px",padding.left="3px",padding.right="3px",
-      background=col_read_length[factor(v_dfr_otw$`Read Length`)]))
+      background=col_read_length2[factor(v_dfr_otw$`Read Length`)]))
     
     v_dfr_otw <- formattable(v_dfr_otw,list(
       "Instrument"=color_bar_ins,
@@ -268,8 +310,8 @@ shinyServer(function(input,output,session) {
         searchHighlight=TRUE,
         autoWidth=FALSE,
         columnDefs=list(list(className="dt-right",targets=c(8:10)),
-                        list(className="dt-center",targets=c(5:7)),
-                        list(className="dt-left",targets=c(1:4)),
+                        list(className="dt-center",targets=c(3:7)),
+                        list(className="dt-left",targets=c(1:2)),
                         list(width="170px",targets=1))),
       callback = JS(paste0("var tips=['','",paste(fn_table_wide_colnames()$Description,collapse="','"),"'],
                            header=table.columns().header();
@@ -409,9 +451,9 @@ shinyServer(function(input,output,session) {
     v_in_read_length <- v_dfr_long$read_length
     v_rtm <- ifelse(v_dfr_long$read_type=="se",1,2)
     
-    if(nrow(v_dfr_long)==0) stop("Number of rows of filtered ins table is zero.")
-    if(nrow(v_dfr_long)>1) stop("Number of rows of filtered ins table >1.")
-    
+    validate(fn_validate_equal(nrow(v_dfr_long)==0,FALSE,"Number of rows of filtered ins table is zero."))
+    validate(fn_validate_equal(nrow(v_dfr_long)>1,FALSE,"Number of rows of filtered ins table >1."))
+
     dfr_long <- data.frame(samples_per_lane=1:input$in_num_samples,stringsAsFactors=F)
     
     dfr_long <- dfr_long %>% mutate(reads_per_sample=v_dfr_long$reads_per_lane/samples_per_lane,
@@ -666,6 +708,7 @@ shinyServer(function(input,output,session) {
   output$out_pa <- renderPrint({
     #shiny::req(input$in_pa_est)
     
+    tryCatch({
     depth <- as.numeric(unlist(strsplit(gsub(" ","",input$in_pa_depth),",")))
     
     if(input$in_pa_est=="n") {
@@ -721,6 +764,9 @@ shinyServer(function(input,output,session) {
       
       RNASeqPower::rnapower(depth=depth,n=n,cv=cv,effect=effect,alpha=alpha)
     }
+    }, error=function(e) {
+      validate(fn_validate_equal(T,F,"Power analysis error. Check if input values and/or delimiters are correct. All input must be numeric. Coefficient of variation, Alpha and Power must be values between 0 and 1. If error persists, contact us."))
+    })
   })
   
   # OUT: out_display -----------------------------------------------------------

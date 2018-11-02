@@ -53,3 +53,13 @@ table.dataTable span.highlight {
   padding: 10px;
   background: #ABB2B9;
 }
+
+/* colour palette picker */
+.cpdd {
+  background-color: transparent;
+  border: 1px solid #dce4ec;
+} 
+
+.cpdd:hover {
+  color: #2c3e50;
+}

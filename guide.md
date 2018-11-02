@@ -1,7 +1,6 @@
 
 #### [1. Usage](#usage)  
 #### [2. Details](#details)   
-#### [3. Contact](#contactmarker)  
 
 ---
 
@@ -43,7 +42,7 @@ Zage helps you plan your NGS sequencing experiment. Use this tool to compare seq
 
 * Under Overview tab, set the number of pools OR the number of samples per pool. 
 
-> If number of pools are set, samples per pool is computed. And vice-versa. Number of pools and samples per pool must be an exact multiple of the total number of samples. It is assumed that each pool will be run on one lane. If all samples will be pooled together and sequenced on a single lane, set number of pools to 1. If no pooling will be done (each sample goes on its own single lane), set the number of pools equal to the number of samples. Hover over the table header for more information about the column. The table can be sorted by any column by clicking on the header. The search bar can be used to filter the table. 
+> If number of pools are set, samples per pool is computed. And vice-versa. Number of pools and samples per pool must be an exact multiple of the total number of samples. It is assumed that each pool will be run on one lane. If all samples will be pooled together and sequenced on a single lane, set number of pools to 1. If no pooling will be done (each sample goes on its own single lane), set the number of pools equal to the number of samples. Hover over the table header for more information about the column. The table can be sorted by any column by clicking on the header. Hold shift key and click two or more column headers to sort by multiple columns. The search bar can be used to filter the table. Protocols that do not meet minimum unit limits are not displayed. See details section for more info. 
 
 #### 1.4 Compare Protocols
 
@@ -79,6 +78,17 @@ Zage helps you plan your NGS sequencing experiment. Use this tool to compare seq
 
 <a name="details"><h3>2. Details</h3></a>   
 
+#### 2.1 Terminology
+
+![pic](www/workflow.png)  
+*__Fig 1__: Sequencing workflow and terminology.*  
+
+An instrument refers to a sequencing machine/equipment along with the version of the reagent chemistry used. Read length refers to the length of reads obtained from the sequencing run. Read type can be single-end (SE) or paired-end (PE). Single-end reads are sequenced only from one direction/one end of the library resulting in one fastq read file. Paired-end reads are sequenced from both ends of the library resulting (usually) in two fastq read files. A combination of instrument, read length and read type is referred to as a protocol.
+
+A sequencing machine is usually one or more flow cells. Each flow cell has multiple lanes. The minimum unit that can be ordered is usually a lane. One or more samples (indexed, multiplexed and pooled) are loaded onto a lane. For some protocols, the minimum unit that can be ordered is a flow cell. This limitation is referred to as minimum unit limit. If the user is not able to utilise the whole flow cell, they are not able to order that protocol.
+
+#### 2.2 Depth cost coverage calculation
+
 Overview tab uses three input variables (genome/transcriptome size in gb, total number of samples, number of pools) and one computed variable (number of samples per pool) along with the instrument metrics (read type, read length, reads per lane, cost per lane) to compute coverage, cost per sample and total sequencing cost for all samples.
 
 ```
@@ -102,12 +112,14 @@ cost_per_sample = 74284 / 12 = 6190.3
 cost_total = 6190.3 * 12 = 74284
 ```
 
-![pic](www/workflow.png)  
-*__Fig 1__: Sequencing workflow and terminology.*  
+#### 2.3 Power analysis
 
 Power analysis is performed using R package [RNASeqPower](https://bioconductor.org/packages/release/bioc/html/RNASeqPower.html). See package description or vignette for more details.
 
-<a name="contactmarker"><h3>3. Contact</h3></a>  
-If you have any comments, suggestions or would like to report an issue, please write to `roy.francis@nbis.se`. 
-  
+#### 2.4 Limitations
+
+- The app currently only handles exact multiples of total samples and samples per pool/number of lanes. This means that the total number of samples must be split equally into x pools/lanes. In practice, this doesn't have to be the case. In practice, the unequal extra pool can be sequenced on a lane resulting in extra coverage.
+
+- Non-Illumina services such as PacBio and Nanopore are currently not avaliable on the app.
+
 [Go to Top](#usage)  

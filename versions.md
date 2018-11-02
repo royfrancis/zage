@@ -1,8 +1,18 @@
 
+#### v1.0.3
+* 02-Nov-2018
+* Minimum unit limit (MUL) added
+  * In overview table, protocols not fulfilling MUL is removed
+  * In Selected protocols tab, protocols not fulfilling MUL is disabled
+* Set up to read cost info from remote location
+* Updated guide
+* New tab added for contact
+
 #### v1.0.2  
 * 13-Oct-2018
 * Cost columns are right aligned and have gaps for readability
 * Add genome and transcriptome sizes for more organisms
+* Updated logo
 
 #### v1.0.1  
 * 03-Oct-2018

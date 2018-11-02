@@ -48,7 +48,7 @@ opts_chunk$set(dev="CairoPNG",results="hold",fig.show="hold",fig.align="left",ec
 |Total number of samples: |`r paste0("<b>",params$num_samples,"</b>")`|  
 |Number of pools: |`r paste0("<b>",params$num_pools,"</b>")`|  
 |Samples per pool: |`r paste0("<b>",params$samples_per_pool,"</b>")`|  
-|Protocol: |`r paste0("<b>",params$protocol,"</b>")`|
+|Selected protocol: |`r paste0("<b>",params$protocol,"</b>")`|
 
 ---
 
