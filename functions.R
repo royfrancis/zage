@@ -1,5 +1,5 @@
 # ZAGE SHINYAPP
-# 2018 Roy Mathew Francis
+# 2020 Roy Mathew Francis
 # FUNCTIONS.R
 
 # for custom font
@@ -8,7 +8,7 @@
 # .libPaths(c('r-lib',.libPaths()))
 # install.packages('r-lib/extrafontdb_1.0.tar.gz',type='source',repos=NULL)
 # library(extrafont)
-# font_import(pattern="Lato",,prompt=FALSE)
+# font_import(pattern="Lato",prompt=FALSE)
 # loadfonts()
 
 # check packages
@@ -41,16 +41,16 @@ library(shinyWidgets)
 # INITIALISE -------------------------------------------------------------------
 
 # read and prepare instrument info
-# dfr_ins <- read.delim("ins.txt",header=T,stringsAsFactors=F)
-# dfr_ins$read_type <- ifelse(dfr_ins$read_type==1,"SE","PE")
-# dfr_ins$protocol <- paste0(dfr_ins$ins,"_",dfr_ins$read_type,"_",dfr_ins$read_length)
-# dfr_ins <- dfr_ins %>% arrange(ins,min_unit,read_type,read_length)
+# dfr_ins <- read.delim("ins.txt",header=T,stringsAsFactors=F) %>%
+#            mutate(read_type = ifelse(read_type==1,"SE","PE")) %>%
+#            mutate(protocol = paste0(ins,"_",read_type,"_",read_length,"_",min_unit)) %>%
+#            arrange(ins,min_unit,read_type,read_length)
 # saveRDS(dfr_ins,"dfr_ins.Rds")
 dfr_ins <- readRDS("dfr_ins.Rds")
 
 # remote data
 # check if remote read reading works
-remote_path <- "https://www.dropbox.com/s/ae2khbyoklyfa5t/ins.txt?dl=1"
+remote_path <- "https://raw.githubusercontent.com/royfrancis/zage/master/ins.txt"
 r <- tryCatch(
   read.delim(remote_path,header=T,stringsAsFactors=F,nrows=1),
   error=function(er){"error"})
@@ -62,7 +62,7 @@ if(is.data.frame(r))
       dfr_ins <- read.delim(remote_path,header=T,stringsAsFactors=F)
       dfr_ins$read_type <- ifelse(dfr_ins$read_type==1,"SE","PE")
       dfr_ins$protocol <- paste0(dfr_ins$ins,"_",dfr_ins$read_type,"_",dfr_ins$read_length)
-      dfr_ins <- dfr_ins %>% arrange(ins,min_unit,read_type,read_length)
+      dfr_ins <- dfr_ins %>% arrange(ins,min_unit,read_type,read_length,min_unit)
       #saveRDS(dfr_ins,"dfr_ins.Rds")
       message("ins.txt successfully read and saved from remote location.")
     }else{message("ins.txt not read from remote location: Date not changed.")}
@@ -77,14 +77,17 @@ choices_protocol <- dfr_ins$protocol
 col_ins <- RColorBrewer::brewer.pal(12,"Paired")
 col_read_type <- RColorBrewer::brewer.pal(8,"Set2")
 col_read_length <- RColorBrewer::brewer.pal(8,"Dark2")
+col_min_unit <- RColorBrewer::brewer.pal(3,"Accent")
 
 if(length(col_ins) < length(levels(factor(dfr_ins$ins)))) warning("Number of colours less than number of instruments.")
 if(length(col_read_type) < length(levels(factor(dfr_ins$read_type)))) warning("Number of colours less than number of read types.")
 if(length(col_read_length) < length(levels(factor(dfr_ins$read_length)))) warning("Number of colours less than number of read lengths.")
+if(length(col_min_unit) < length(levels(factor(dfr_ins$min_unit)))) warning("Number of colours less than number of min_unit.")
 
 names(col_ins) <- levels(factor(dfr_ins$ins))
 names(col_read_type) <- levels(factor(dfr_ins$read_type))
 names(col_read_length) <- levels(factor(dfr_ins$read_length))
+names(col_min_unit) <- levels(factor(dfr_ins$min_unit))
 
 color_bar_ins1 <- formatter("span",style=function(x) style(
   color="white",font.weight="bold",
@@ -98,11 +101,16 @@ color_bar_read_length1 <- formatter("span",style=function(x) style(
   color="white",font.weight="bold",
   border.radius="4px",padding.left="3px",padding.right="3px",
   background=col_read_length[factor(dfr_ins$read_length)]))
+color_bar_min_unit <- formatter("span",style=function(x) style(
+  color="white",font.weight="bold",
+  border.radius="4px",padding.left="3px",padding.right="3px",
+  background=col_min_unit[factor(dfr_ins$min_unit)]))
 
 # dropdown selection choices
 choices_protocol_opts <- paste0(color_bar_ins1(dfr_ins$ins),"<span style='padding:3px;'>",
                                 color_bar_read_type1(dfr_ins$read_type),"<span style='padding:3px;'>",
-                                color_bar_read_length1(dfr_ins$read_length))
+                                color_bar_read_length1(dfr_ins$read_length),"<span style='padding:3px;'>",
+                                color_bar_min_unit(dfr_ins$min_unit))
 
 # read and prepare organism info
 #s <- read.delim("sizes.txt",header=F,stringsAsFactors=F)
@@ -114,7 +122,7 @@ choices_org <- split(dfr_org$label,factor(dfr_org$cat1))
 
 # FUNCTIONS --------------------------------------------------------------------
 
-fn_version <- function(){list(appversion="v1.0.3",appdate="02-Nov-2018",datadate=dfr_ins$last_updated[1])}
+fn_version <- function(){list(appversion="v1.0.4",appdate="14-Feb-2020",datadate=dfr_ins$last_updated[1])}
 fnv <- fn_version()
 
 dfr_ins$last_updated <- NULL

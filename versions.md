@@ -1,4 +1,10 @@
 
+#### v1.0.4
+* 14-Feb-2020
+* Updated FontAwesome
+* Updated ins data remote path
+* Fixed minor issues
+
 #### v1.0.3
 * 02-Nov-2018
 * Minimum unit limit (MUL) added

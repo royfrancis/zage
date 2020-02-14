@@ -26,12 +26,25 @@ blockquote {
   max-width: 800px;
 }
 
+.logo{
+  position: relative;
+  right: 0;
+  top: -65px;
+  padding-right: 3%;
+  height: 40px;
+  margin-top: 21px; 
+  margin-bottom: 10.5px;
+  float: right;
+}
+
 .slogo {
-  position:absolute;
-  height:60px;
-  right:0px;
-  margin-right:10px;
-  margin-top:10px;
+  position: relative;
+  height: 40px;
+  right: 0px;
+  margin-top: 21px;
+  margin-bottom: 10.5px;
+  top: -100px;
+  float: right;
 }
 
 .main-container {
@@ -55,11 +68,15 @@ table.dataTable span.highlight {
 }
 
 /* colour palette picker */
-.cpdd {
+.cpdd { 
   background-color: transparent;
   border: 1px solid #dce4ec;
 } 
 
 .cpdd:hover {
   color: #2c3e50;
+}
+
+.control-label {
+  color: #C0C0C0;
 }

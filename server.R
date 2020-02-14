@@ -1,5 +1,5 @@
 # ZAGE SHINYAPP
-# 2018 Roy Mathew Francis
+# 2020 Roy Mathew Francis
 # SERVER.R
 
 shinyServer(function(input,output,session) {
@@ -110,7 +110,7 @@ shinyServer(function(input,output,session) {
   output$out_ome_size <- renderText({
     shiny::req(fn_oz())
     
-    return(paste0("Selected genome size (Gbp): <b>",fn_oz(),"</b>"))
+    return(paste0("Selected genome size (Gbp): <b>",round(fn_oz(),4),"</b>"))
   })
   
   # OUT: out_criteria -----------------------------------------------
@@ -169,17 +169,6 @@ shinyServer(function(input,output,session) {
     return(dfr_ins)
   })
   
-  # OBS ---------------------------------------------------------------------
-  # Updates dropdown widget to reflect min unit limit
-  
-  observeEvent(fn_ins_mul(),{
-    choices_protocol_opts1 <- ifelse(fn_ins_mul()$min_unit_limit,choices_protocol_opts,gsub("background: #[A-Z0-9]+","background: #DCDCDC",choices_protocol_opts))
-    updatePickerInput(session,"in_protocol","Protocol",choices=choices_protocol,
-                      selected=fn_ins_mul()[fn_ins_mul()$min_unit_limit==F]$protocol[1],
-                      choicesOpt=list(disabled=!fn_ins_mul()$min_unit_limit,
-                                      content=choices_protocol_opts1))
-  })
-  
   # RFN: fn_ins -----------------------------------------------------------
   # filters out mul
   
@@ -189,8 +178,21 @@ shinyServer(function(input,output,session) {
     # get dfr_ins
     dfr_ins <- fn_ins_mul() %>% dplyr::filter(min_unit_limit==TRUE)
     dfr_ins$min_unit_limit <- NULL
-
+    
+    if(nrow(dfr_ins)<1) stop("Empty dataframe.")
     return(dfr_ins)
+  })
+  
+  # OBS ---------------------------------------------------------------------
+  # Updates dropdown widget to reflect min unit limit
+  
+  observeEvent(fn_ins_mul(),{
+    
+    choices_protocol_opts1 <- ifelse(fn_ins_mul()$min_unit_limit,choices_protocol_opts,gsub("background: #[A-Z0-9]+","background: #DCDCDC",choices_protocol_opts))
+    updatePickerInput(session,"in_protocol","Protocol",choices=choices_protocol,
+                      selected=fn_ins_mul()[fn_ins_mul()$min_unit_limit==T,]$protocol[1],
+                      choicesOpt=list(disabled=!fn_ins_mul()$min_unit_limit,
+                                      content=choices_protocol_opts1))
   })
   
   # OUT: out_mul -----------------------------------------------
@@ -269,6 +271,7 @@ shinyServer(function(input,output,session) {
     col_ins2 <- col_ins[names(col_ins) %in% sort(unique(v_dfr_otw$Instrument))]
     col_read_type2 <- col_read_type[names(col_read_type) %in% sort(unique(v_dfr_otw$`Read Type`))]
     col_read_length2 <- col_read_length[names(col_read_length) %in% sort(unique(v_dfr_otw$`Read Length`))]
+    col_min_unit2 <- col_min_unit[names(col_min_unit) %in% sort(unique(v_dfr_otw$`Min Unit`))]
     
     color_bar_ins <- formatter("span",style=function(x) style(
       color="white",font.weight="bold",
@@ -282,11 +285,16 @@ shinyServer(function(input,output,session) {
       color="white",font.weight="bold",
       border.radius="4px",padding.left="3px",padding.right="3px",
       background=col_read_length2[factor(v_dfr_otw$`Read Length`)]))
+    color_bar_min_unit <- formatter("span",style=function(x) style(
+      color="white",font.weight="bold",
+      border.radius="4px",padding.left="3px",padding.right="3px",
+      background=col_min_unit2[factor(v_dfr_otw$`Min Unit`)]))
     
     v_dfr_otw <- formattable(v_dfr_otw,list(
       "Instrument"=color_bar_ins,
       "Read Type"=color_bar_read_type,
       "Read Length"=color_bar_read_length,
+      "Min Unit"=color_bar_min_unit,
       "Reads Per Sample (Millions)"=color_tile("#dfecbb","#95c11e"),
       "Coverage (Lander-Waterman) X"=color_tile("#dfecbb","#95c11e"),
       "Total Cost (SEK)"=color_tile("#dfecbb","#95c11e")))
@@ -312,7 +320,7 @@ shinyServer(function(input,output,session) {
         columnDefs=list(list(className="dt-right",targets=c(8:10)),
                         list(className="dt-center",targets=c(3:7)),
                         list(className="dt-left",targets=c(1:2)),
-                        list(width="170px",targets=1))),
+                        list(width="160px",targets=1))),
       callback = JS(paste0("var tips=['','",paste(fn_table_wide_colnames()$Description,collapse="','"),"'],
                            header=table.columns().header();
                            for (var i=0; i<tips.length; i++) {
@@ -849,7 +857,7 @@ shinyServer(function(input,output,session) {
       path_report <- file.path(tdir,"report.Rmd")
       file.copy(from="./report.Rmd",to=path_report,overwrite=TRUE)
       file.copy(from="./www/styles.css",tdir,overwrite=TRUE)
-      file.copy(from="./www/logo_scilifelab.svg",tdir,overwrite=TRUE)
+      file.copy(from="./www/logo.svg",tdir,overwrite=TRUE)
       
       # params
       params <- list(

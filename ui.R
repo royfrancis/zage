@@ -1,5 +1,5 @@
 # ZAGE SHINYAPP
-# 2018 Roy Mathew Francis
+# 2020 Roy Mathew Francis
 # UI.R
 
 source("functions.R")
@@ -9,11 +9,11 @@ shinyUI(
             includeCSS("www/styles.css"),
             tags$head(includeScript("google-analytics.js")),
             tags$head(tags$link(rel="favicon", href="/www/favicon.ico")),
-            tags$title("Zage | Plan your sequencing"),
+            tags$title("Zage | Plan Your Illumina Sequencing"),
             fluidRow(style="height:80px",
                      fluidRow(style="padding-left:4%;min-height:80px;",
-                              HTML("<div><p><h2><b>Zage</b> | Plan your sequencing</h2></p></div>"),
-                              HTML("<div><img src='logo_scilifelab.svg' style='position:absolute;right:0;top:1%;padding-right:3%;height:55px;' class='img-responsive'</div>")
+                              HTML("<div><p><h2><b>Zage</b> | Plan Your Illumina Sequencing</h2></p></div>"),
+                              HTML("<div><img src='logo.svg' class='logo'</div>")
                      )
             ),
             fluidRow(style="padding-right:3%;padding-left:3%",
@@ -31,7 +31,7 @@ shinyUI(
                                      tags$hr(),
                                      #verbatimTextOutput("out_display"),
                                      HTML(paste0("<small>Zage version: ",fnv$appversion,". Data updated: ",fnv$datadate,"</small></br>")),
-                                     HTML("<small>2018 | Roy Francis</small>")
+                                     HTML(paste0("<small>",format(Sys.time(),'%Y')," • Roy Francis</small>"))
                                      
                               ),
                               column(9,
@@ -40,10 +40,10 @@ shinyUI(
                                                  tabPanel("Overview",
                                                           fluidRow(
                                                                    column(12,
-                                                                          fluidRow(                                                            HTML('<div class="row" style="margin: 15px;">
+                                                                          fluidRow(                                                            HTML(paste0('<div class="row" style="margin: 15px;">
     <div class="col-auto">
       <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac2" role="button" aria-expanded="false" aria-controls="ac2">
-      <i class="fa fa-info-circle fa-lg"></i>
+      ',icon("info-circle"),'
       </a>
 </div>
 <div class="col-sm-11">
@@ -53,7 +53,7 @@ shinyUI(
       </div>
       </div>
       </div>
-      </div>'),
+      </div>')),
                                                             column(3,style="padding-top:12px;",
                                                                    selectInput("in_criteria","Select criteria to set",choices=c("Set Number of pools","Set Samples per pool"),selected=1,selectize=TRUE,multiple=FALSE)),
                                                             column(2,style="padding-top:5px;",
@@ -77,10 +77,10 @@ shinyUI(
                                                  tabPanel("Compare Protocols",
                                                           fluidRow(
                                                             column(12,
-                                                            HTML('<div class="row" style="margin: 15px;">
+                                                            HTML(paste0('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac3" role="button" aria-expanded="false" aria-controls="ac3">
-                                                                 <i class="fa fa-info-circle fa-lg"></i>
+                                                                 ',icon("info-circle"),'
                                                                  </a>
                                                                  </div>
                                                                  <div class="col-sm-11">
@@ -90,7 +90,7 @@ shinyUI(
                                                                  </div>
                                                                  </div>
                                                                  </div>
-                                                                 </div>'),
+                                                                 </div>')),
                                                               tags$br(),
                                                               htmlOutput("out_plot_container")
                                                             )
@@ -99,10 +99,10 @@ shinyUI(
                                                  tabPanel("Selected Protocol",
                                                           fluidRow(
                                                             column(12,
-                                                            HTML('<div class="row" style="margin: 15px;">
+                                                            HTML(paste0('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac4" role="button" aria-expanded="false" aria-controls="ac4">
-                                                                 <i class="fa fa-info-circle fa-lg"></i>
+                                                                 ',icon("info-circle"),'
                                                                  </a>
                                                                  </div>
                                                                  <div class="col-sm-11">
@@ -112,7 +112,7 @@ shinyUI(
                                                                  </div>
                                                                  </div>
                                                                  </div>
-                                                                 </div>'),
+                                                                 </div>')),
                                                             
                                                                    fluidRow(
                                                                      column(4,
@@ -136,10 +136,10 @@ shinyUI(
                                                  tabPanel("Power Analysis",
                                                           fluidRow(
                                                                    column(12,
-                                                            HTML('<div class="row" style="margin: 15px;">
+                                                            HTML(paste0('<div class="row" style="margin: 15px;">
     <div class="col-auto">
                                                                  <a class="btn btn-default" style="padding:2px 4px;" data-toggle="collapse" href="#ac5" role="button" aria-expanded="false" aria-controls="ac5">
-                                                                 <i class="fa fa-info-circle fa-lg"></i>
+                                                                 ',icon("info-circle"),'
                                                                  </a>
                                                                  </div>
                                                                  <div class="col-sm-11">
@@ -149,7 +149,7 @@ shinyUI(
                                                                  </div>
                                                                  </div>
                                                                  </div>
-                                                                 </div>'),
+                                                                 </div>')),
                                                             fluidRow(
                                                             column(4,
                                                               selectInput("in_pa_est","Variable to estimate",choices=choices_pa,selected=1,selectize=TRUE,multiple=FALSE),

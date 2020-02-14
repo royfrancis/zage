@@ -1,4 +1,6 @@
 ---
+title: "Zage Report"
+author: "`r format(Sys.Date(),format='%d-%b-%Y')`"
 output: 
   html_document:
     number_sections: false
@@ -30,13 +32,11 @@ library(ggplot2)
 
 # set knit options
 opts_knit$set(progress=TRUE,verbose=TRUE)
-opts_chunk$set(dev="CairoPNG",results="hold",fig.show="hold",fig.align="left",echo=FALSE,warning=FALSE,message=FALSE)
+opts_chunk$set(dev="svg",results="hold",fig.show="hold",fig.align="left",echo=FALSE,warning=FALSE,message=FALSE)
 #options(knitr.table.format = "html") 
 ```
 
-<img src="logo_scilifelab.svg" alt="logo" class="slogo">
-<h1 class="toc-ignore rtitle">Zage Report</h1>
-<h4 class="toc-ignore">`r format(Sys.Date(),format="%d-%b-%Y")`</h4>
+<img src="logo.svg" alt="logo" class="slogo">
 
 ---
 
