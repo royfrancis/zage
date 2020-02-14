@@ -79,7 +79,7 @@ dfr <- params$table_long_raw %>%
   gather(key=metric,value=value,-samples_per_lane) %>%
   mutate(metric=plyr::mapvalues(metric,from=c("cost_per_sample","cost_total",
                                                 "coverage","lanes_req","reads_per_sample"),
-                                  to=c("Cost Per Sample (SEK)","Cost Total (SEK)",
+                                  to=c("Cost Per Sample (USD)","Cost Total (USD)",
                                        "Coverage (X)","Lanes Required","Reads Per Sample (Millions)")))
 
 ggplot(dfr,aes(x=as.factor(samples_per_lane),y=value,col=metric,group=metric))+

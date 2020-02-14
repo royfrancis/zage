@@ -222,9 +222,9 @@ shinyServer(function(input,output,session) {
                                "Read Length",
                                "Reads Per Sample (Millions)",
                                "Coverage (Lander-Waterman) X",
-                               "Cost Per Lane (SEK)",
-                               "Cost Per Sample (SEK)",
-                               "Total Cost (SEK)"),
+                               "Cost Per Lane (USD)",
+                               "Cost Per Sample (USD)",
+                               "Total Cost (USD)"),
                       Description=c("Sequencing instrument",
                                     "Minimum units required for a sequencing run",
                                     "Number of lanes",
@@ -232,9 +232,9 @@ shinyServer(function(input,output,session) {
                                     "Read length (base pairs)",
                                     "Number of reads per sample (millions)",
                                     "Lander-Waterman coverage (X)",
-                                    "Cost per lane (SEK)",
-                                    "Cost per sample (SEK)",
-                                    "Total sequencing cost for all samples (SEK)"),
+                                    "Cost per lane (USD)",
+                                    "Cost per sample (USD)",
+                                    "Total sequencing cost for all samples (USD)"),
                       stringsAsFactors=F)
     return(dfr)
   }
@@ -297,7 +297,7 @@ shinyServer(function(input,output,session) {
       "Min Unit"=color_bar_min_unit,
       "Reads Per Sample (Millions)"=color_tile("#dfecbb","#95c11e"),
       "Coverage (Lander-Waterman) X"=color_tile("#dfecbb","#95c11e"),
-      "Total Cost (SEK)"=color_tile("#dfecbb","#95c11e")))
+      "Total Cost (USD)"=color_tile("#dfecbb","#95c11e")))
     
     return(v_dfr_otw)
   })
@@ -328,17 +328,17 @@ shinyServer(function(input,output,session) {
                            };"))
     )
     
-    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (SEK)`,">[0-9]+<"),">|<",""))
-    tmp$x$data$`Total Cost (SEK)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (SEK)`,
+    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (USD)`,">[0-9]+<"),">|<",""))
+    tmp$x$data$`Total Cost (USD)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (USD)`,
                                                               ">[0-9]+<",paste0(">",prettyNum(tmpnum,
                                                                                               big.mark="<span style='padding:3px;'>",
                                                                                               big.interval=3,scientific=F),"<"))
     
-    tmp$x$data$`Cost Per Sample (SEK)` <- prettyNum(tmp$x$data$`Cost Per Sample (SEK)`,
+    tmp$x$data$`Cost Per Sample (USD)` <- prettyNum(tmp$x$data$`Cost Per Sample (USD)`,
                                                     big.mark="<span style='padding:3px;'>",
                                                     big.interval=3,scientific=F)
     
-    tmp$x$data$`Cost Per Lane (SEK)` <- prettyNum(tmp$x$data$`Cost Per Lane (SEK)`,
+    tmp$x$data$`Cost Per Lane (USD)` <- prettyNum(tmp$x$data$`Cost Per Lane (USD)`,
                                                   big.mark="<span style='padding:3px;'>",
                                                   big.interval=3,scientific=F)
     return(tmp)
@@ -404,7 +404,7 @@ shinyServer(function(input,output,session) {
       mutate(metric=factor(as.character(metric))) %>%
       mutate(ylab=plyr::mapvalues(metric,from=c("cost_per_sample","cost_total",
                                                 "coverage","reads_per_sample"),
-                                  to=c("Cost Per Sample (SEK)","Cost Total (SEK)",
+                                  to=c("Cost Per Sample (USD)","Cost Total (USD)",
                                        "Coverage (X)","Reads Per Sample (Millions)")))
     
     rtlist <- split(dfr,dfr$metric)
@@ -488,14 +488,14 @@ shinyServer(function(input,output,session) {
     
     dfr <- data.frame(Header=c("Samples Per Lane","Reads Per Sample (Millions)",
                                "Lanes Required","Lane Usage","Coverage",
-                               "Cost Per Sample (SEK)","Total Cost (SEK)"),
+                               "Cost Per Sample (USD)","Total Cost (USD)"),
                       Description=c("Number of samples pooled per lane",
                                     "Number of reads per sample (millions)",
                                     "Number of lanes required",
                                     "Exact usage of lanes",
                                     "Lander-Waterman coverage (X)",
-                                    "Cost per sample (SEK)",
-                                    "Total sequencing cost for all samples (SEK)"),
+                                    "Cost per sample (USD)",
+                                    "Total sequencing cost for all samples (USD)"),
                       stringsAsFactors=F)
     return(dfr)
   }
@@ -518,7 +518,7 @@ shinyServer(function(input,output,session) {
     dfr_long <- formattable(dfr_long,list(
       "Reads Per Sample (Millions)"=color_tile("#dfecbb","#95c11e"),
       "Coverage"=color_tile("#dfecbb","#95c11e"),
-      "Total Cost (SEK)"=color_tile("#dfecbb","#95c11e")))
+      "Total Cost (USD)"=color_tile("#dfecbb","#95c11e")))
     
     return(dfr_long)
   })
@@ -546,12 +546,12 @@ shinyServer(function(input,output,session) {
                                   $(header[i]).attr('title', tipslong[i]);
                                   }")))
     
-    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (SEK)`,">[0-9]+<"),">|<",""))
-    tmp$x$data$`Total Cost (SEK)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (SEK)`,
+    tmpnum <- as.integer(stringr::str_replace_all(stringr::str_extract(tmp$x$data$`Total Cost (USD)`,">[0-9]+<"),">|<",""))
+    tmp$x$data$`Total Cost (USD)` <- stringr::str_replace_all(tmp$x$data$`Total Cost (USD)`,
                                                               ">[0-9]+<",paste0(">",prettyNum(tmpnum,
                                                                                               big.mark="<span style='padding:3px;'>",
                                                                                               big.interval=3,scientific=F),"<"))
-    tmp$x$data$`Cost Per Sample (SEK)` <- prettyNum(tmp$x$data$`Cost Per Sample (SEK)`,
+    tmp$x$data$`Cost Per Sample (USD)` <- prettyNum(tmp$x$data$`Cost Per Sample (USD)`,
                                                     big.mark="<span style='padding:3px;'>",
                                                     big.interval=3,scientific=F)
     return(tmp)
@@ -595,7 +595,7 @@ shinyServer(function(input,output,session) {
     #                                      '</br>Cost Per Sample: ',cost_per_sample,
     #                                      '</br>Total Cost: ',cost_total)) %>%
     #   add_markers(color=~coverage,size=~reads_per_sample,marker=list(sizeref=0.1)) %>%
-    #   layout(xaxis=list(title="Samples Per Lane"),yaxis=list(title="Total Cost (SEK)"))
+    #   layout(xaxis=list(title="Samples Per Lane"),yaxis=list(title="Total Cost (USD)"))
     
     #saveRDS(dfr_long,"temp-long.Rds")
     #dfr_long <- readRDS("temp-long.Rds")
